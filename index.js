@@ -44,8 +44,9 @@ function release (client, err) {
       this._remove(client)
     }, this.options.idleTimeoutMillis)
   }
-
   this._idle.push(new IdleItem(client, tid))
+  this._active.splice(this._active.indexOf(client, 1))
+  this.emit('release', client)
   this._pulseQueue()
 }
 
@@ -94,6 +95,7 @@ class Pool extends EventEmitter {
 
     this._clients = []
     this._idle = []
+    this._active = []
     this._pendingQueue = []
     this._endCallback = undefined
     this.ending = false
@@ -149,8 +151,8 @@ class Pool extends EventEmitter {
 
   _remove (client) {
     const removed = removeWhere(
-      this._idle,
-      item => item.client === client
+    this._idle,
+    item => item.client === client
     )
 
     if (removed !== undefined) {
@@ -250,6 +252,7 @@ class Pool extends EventEmitter {
       } else {
         this.log('new client connected')
         client.release = release.bind(this, client)
+        this._active.push(client)
         this.emit('connect', client)
         this.emit('acquire', client)
         if (!pendingItem.timedOut) {
@@ -327,6 +330,10 @@ class Pool extends EventEmitter {
 
   get totalCount () {
     return this._clients.length
+  }
+
+  get activeCount () {
+    return this._active.length
   }
 }
 module.exports = Pool

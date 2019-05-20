@@ -60,6 +60,27 @@ describe('events', function () {
     }, 100)
   })
 
+  it('emits release every time a client is released', function (done) {
+    const pool = new Pool()
+    let releaseCount = 0
+    pool.on('release', function (client) {
+      expect(client).to.be.ok()
+      releaseCount++
+    })
+    for (let i = 0; i < 10; i++) {
+      pool.connect(function (err, client, release) {
+        if (err) return done(err)
+        expect(pool.activeCount).to.be.greaterThan(0)
+        setTimeout(release, 1)
+      })
+    }
+    setTimeout(function () {
+      expect(releaseCount).to.be(10)
+      expect(pool.activeCount).to.be(0)
+      pool.end(done)
+    }, 100)
+  })
+
   it('emits error and client if an idle client in the pool hits an error', function (done) {
     const pool = new Pool()
     pool.connect(function (err, client) {
