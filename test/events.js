@@ -67,11 +67,14 @@ describe('events', function () {
       expect(client).to.be.ok()
       releaseCount++
     })
-    for (let i = 0; i < 10; i++) {
+    for (let releases = [], i = 0; i < 10; i++) {
       pool.connect(function (err, client, release) {
         if (err) return done(err)
-        expect(pool.activeCount).to.be.greaterThan(0)
-        setTimeout(release, 1)
+        releases.push(release)
+        expect(pool.activeCount).to.be(releases.length)
+        if (releases.length === 10) {
+          while (releases.length > 0) releases.pop()()
+        }
       })
     }
     setTimeout(function () {

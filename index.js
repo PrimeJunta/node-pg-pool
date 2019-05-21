@@ -45,7 +45,7 @@ function release (client, err) {
     }, this.options.idleTimeoutMillis)
   }
   this._idle.push(new IdleItem(client, tid))
-  this._active.splice(this._active.indexOf(client, 1))
+  this._active.splice(this._active.indexOf(client), 1)
   this.emit('release', client)
   this._pulseQueue()
 }
@@ -151,8 +151,8 @@ class Pool extends EventEmitter {
 
   _remove (client) {
     const removed = removeWhere(
-    this._idle,
-    item => item.client === client
+      this._idle,
+      item => item.client === client
     )
 
     if (removed !== undefined) {
